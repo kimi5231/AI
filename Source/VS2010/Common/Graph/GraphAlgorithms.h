@@ -70,7 +70,10 @@ private:
 
   //this method performs the DFS search
   bool Search();
-  
+
+  // 제한할 깊이
+  int limitDepth{};
+
 public:
 
   Graph_SearchDFS(const graph_type& graph,
@@ -84,10 +87,20 @@ public:
                                       m_Visited(m_Graph.NumNodes(), unvisited),
                                       m_Route(m_Graph.NumNodes(), no_parent_assigned)
 
-  {                                                                         
-    m_bFound = Search(); 
-  }
+  {      
+      // 목표를 찾을 때까지 반복
+      while (!m_bFound)
+      {
+          // 리셋 (처음부터 다시 찾도록)
+          m_Visited.assign(m_Graph.NumNodes(), unvisited);
+          m_Route.assign(m_Graph.NumNodes(), no_parent_assigned);
+          m_SpanningTree.clear();
 
+          m_bFound = Search();
+          // 제한 깊이 증가
+          limitDepth++;
+      }
+  }
 
   //returns a vector containing pointers to all the edges the search has examined
   std::vector<const Edge*> GetSearchTree()const{return m_SpanningTree;}
@@ -104,22 +117,28 @@ public:
 template <class graph_type>
 bool Graph_SearchDFS<graph_type>::Search()
 {
-  //create a std stack of edges
-  std::stack<const Edge*> stack;
+  // 깊이값을 같이 저장
+  std::stack<std::pair<const Edge*, int>> stack;
 
   //create a dummy edge and put on the stack
   Edge Dummy(m_iSource, m_iSource, 0);
   
-  stack.push(&Dummy);
+  // 깊이 0부터 시작
+  stack.push({ &Dummy, 0 });
 
   //while there are edges in the stack keep searching
   while (!stack.empty())
   {
-    //grab the next edge
-    const Edge* Next = stack.top();
+      // 스택의 맨 위에서 꺼내기
+      const Edge* Next = stack.top().first;
+      const int depth = stack.top().second;
 
     //remove the edge from the stack
     stack.pop();
+
+    // 제한한 깊이보다 크면 넘기기
+    if (depth > limitDepth) 
+        continue;
 
     //make a note of the parent of the node this edge points to
     m_Route[Next->To()] = Next->From();
@@ -150,7 +169,8 @@ bool Graph_SearchDFS<graph_type>::Search()
     {
       if (m_Visited[pE->To()] == unvisited)
       {
-        stack.push(pE);
+          // 깊이를 증가시켜서 추가
+          stack.push({ pE, depth + 1 });
       }
     }
   }
