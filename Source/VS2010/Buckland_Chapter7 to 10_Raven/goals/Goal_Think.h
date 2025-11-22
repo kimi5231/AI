@@ -1,3 +1,4 @@
+// 2022184031 ÀÓ¼ö¿µ
 #ifndef GOAL_THINK_H
 #define GOAL_THINK_H
 #pragma warning (disable:4786)
@@ -51,6 +52,7 @@ public:
   void AddGoal_GetItem(unsigned int ItemType);
   void AddGoal_Explore();
   void AddGoal_AttackTarget();
+  void AddGoal_WanderHealth();
 
   //this adds the MoveToPosition goal to the *back* of the subgoal list.
   void QueueGoal_MoveToPosition(Vector2D pos);

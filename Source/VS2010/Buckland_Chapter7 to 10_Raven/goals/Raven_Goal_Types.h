@@ -1,3 +1,4 @@
+// 2022184031 ÀÓ¼ö¿µ
 #ifndef GOAL_ENUMERATIONS_H
 #define GOAL_ENUMERATIONS_H
 
@@ -23,8 +24,9 @@ enum
   goal_hunt_target,
   goal_strafe,
   goal_adjust_range,
-  goal_say_phrase
-  
+  goal_say_phrase,
+
+  goal_wander_health
 };
 
 class GoalTypeToString : public TypeToString

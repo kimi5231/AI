@@ -1,3 +1,4 @@
+// 2022184031 ÀÓ¼ö¿µ
 #include "Goal_Think.h"
 #include <list>
 #include "misc/Cgdi.h"
@@ -18,6 +19,9 @@
 #include "ExploreGoal_Evaluator.h"
 #include "AttackTargetGoal_Evaluator.h"
 
+#include "../Buckland_Chapter7 to 10_Raven/Goal_WanderHealth.h"
+#include "../Buckland_Chapter7 to 10_Raven/WanderHealthGoal_Evaluator.h"
+
 
 Goal_Think::Goal_Think(Raven_Bot* pBot):Goal_Composite<Raven_Bot>(pBot, goal_think)
 {
@@ -33,17 +37,16 @@ Goal_Think::Goal_Think(Raven_Bot* pBot):Goal_Composite<Raven_Bot>(pBot, goal_thi
   double RailgunBias = RandInRange(LowRangeOfBias, HighRangeOfBias);
   double ExploreBias = RandInRange(LowRangeOfBias, HighRangeOfBias);
   double AttackBias = RandInRange(LowRangeOfBias, HighRangeOfBias);
+  double WanderHealthBias = RandInRange(LowRangeOfBias, HighRangeOfBias);
 
   //create the evaluator objects
   m_Evaluators.push_back(new GetHealthGoal_Evaluator(HealthBias));
   m_Evaluators.push_back(new ExploreGoal_Evaluator(ExploreBias));
   m_Evaluators.push_back(new AttackTargetGoal_Evaluator(AttackBias));
-  m_Evaluators.push_back(new GetWeaponGoal_Evaluator(ShotgunBias,
-                                                     type_shotgun));
-  m_Evaluators.push_back(new GetWeaponGoal_Evaluator(RailgunBias,
-                                                     type_rail_gun));
-  m_Evaluators.push_back(new GetWeaponGoal_Evaluator(RocketLauncherBias,
-                                                     type_rocket_launcher));
+  m_Evaluators.push_back(new GetWeaponGoal_Evaluator(ShotgunBias, type_shotgun));
+  m_Evaluators.push_back(new GetWeaponGoal_Evaluator(RailgunBias, type_rail_gun));
+  m_Evaluators.push_back(new GetWeaponGoal_Evaluator(RocketLauncherBias, type_rocket_launcher));
+  m_Evaluators.push_back(new WanderHealthGoal_Evaluator(WanderHealthBias));
 }
 
 //----------------------------- dtor ------------------------------------------
@@ -164,6 +167,15 @@ void Goal_Think::AddGoal_AttackTarget()
     RemoveAllSubgoals();
     AddSubgoal( new Goal_AttackTarget(m_pOwner));
   }
+}
+
+void Goal_Think::AddGoal_WanderHealth()
+{
+    if (notPresent(goal_wander_health))
+    {
+        RemoveAllSubgoals();
+        AddSubgoal(new Goal_WanderHealth(m_pOwner));
+    }
 }
 
 //-------------------------- Queue Goals --------------------------------------
