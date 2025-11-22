@@ -1,4 +1,4 @@
-#ifndef GRAPHALGORITHMS_H
+ï»¿#ifndef GRAPHALGORITHMS_H
 #define GRAPHALGORITHMS_H
 #pragma warning (disable:4786)
 
@@ -70,10 +70,7 @@ private:
 
   //this method performs the DFS search
   bool Search();
-
-  // Á¦ÇÑÇÒ ±íÀÌ
-  int limitDepth{};
-
+  
 public:
 
   Graph_SearchDFS(const graph_type& graph,
@@ -87,20 +84,10 @@ public:
                                       m_Visited(m_Graph.NumNodes(), unvisited),
                                       m_Route(m_Graph.NumNodes(), no_parent_assigned)
 
-  {      
-      // ¸ñÇ¥¸¦ Ã£À» ¶§±îÁö ¹İº¹
-      while (!m_bFound)
-      {
-          // ¸®¼Â (Ã³À½ºÎÅÍ ´Ù½Ã Ã£µµ·Ï)
-          m_Visited.assign(m_Graph.NumNodes(), unvisited);
-          m_Route.assign(m_Graph.NumNodes(), no_parent_assigned);
-          m_SpanningTree.clear();
-
-          m_bFound = Search();
-          // Á¦ÇÑ ±íÀÌ Áõ°¡
-          limitDepth++;
-      }
+  {                                                                         
+    m_bFound = Search(); 
   }
+
 
   //returns a vector containing pointers to all the edges the search has examined
   std::vector<const Edge*> GetSearchTree()const{return m_SpanningTree;}
@@ -117,66 +104,71 @@ public:
 template <class graph_type>
 bool Graph_SearchDFS<graph_type>::Search()
 {
-  // ±íÀÌ°ªÀ» °°ÀÌ ÀúÀå
-  std::stack<std::pair<const Edge*, int>> stack;
+    // ê°„ì„  ê°œìˆ˜ = ë…¸ë“œ ê°œìˆ˜ - 1
+    int maxDepth{ m_Graph.NumNodes() - 1 };
 
-  //create a dummy edge and put on the stack
-  Edge Dummy(m_iSource, m_iSource, 0);
-  
-  // ±íÀÌ 0ºÎÅÍ ½ÃÀÛ
-  stack.push({ &Dummy, 0 });
+    for (int depthLimit = 0; depthLimit <= maxDepth; ++depthLimit) {
+        // ë§¤ ë°˜ë³µë§ˆë‹¤ íŠ¸ë¦¬ ì´ˆê¸°í™”
+        m_Visited.assign(m_Graph.NumNodes(), unvisited);
+        m_Route.assign(m_Graph.NumNodes(), no_parent_assigned);
+        m_SpanningTree.clear();
 
-  //while there are edges in the stack keep searching
-  while (!stack.empty())
-  {
-      // ½ºÅÃÀÇ ¸Ç À§¿¡¼­ ²¨³»±â
-      const Edge* Next = stack.top().first;
-      const int depth = stack.top().second;
+        //create a std stack of edges and depth remaining
+        std::stack<std::pair<const Edge*, int>>stack;
 
-    //remove the edge from the stack
-    stack.pop();
+        //create a dummy edge and put on the stack
+        Edge Dummy(m_iSource, m_iSource, 0);
 
-    // Á¦ÇÑÇÑ ±íÀÌº¸´Ù Å©¸é ³Ñ±â±â
-    if (depth > limitDepth) 
-        continue;
+        stack.push(std::make_pair(&Dummy, depthLimit));
 
-    //make a note of the parent of the node this edge points to
-    m_Route[Next->To()] = Next->From();
+        //while there are edges in the stack keep searching
+        while (!stack.empty())
+        {
+            auto top = stack.top();
+            //remove the edge from the stack
+            stack.pop();
 
-    //put it on the tree. (making sure the dummy edge is not placed on the tree)
-    if (Next != &Dummy)
-    {
-      m_SpanningTree.push_back(Next);
+            //grab the next edge
+            const Edge* Next = top.first;
+            int remaining = top.second;
+
+            //make a note of the parent of the node this edge points to
+            m_Route[Next->To()] = Next->From();
+
+            //put it on the tree. (making sure the dummy edge is not placed on the tree)
+            if (Next != &Dummy)
+            {
+                m_SpanningTree.push_back(Next);
+            }
+
+            //and mark it visited
+            m_Visited[Next->To()] = visited;
+
+            //if the target has been found the method can return success
+            if (Next->To() == m_iTarget)
+            {
+                return true;
+            }
+
+            // ë‚¨ì€ ê¹Šì´ê°€ 0ì´ë©´ í™•ì¥X
+            if (remaining <= 0) continue;
+
+            //push the edges leading from the node this edge points to onto
+            //the stack (provided the edge does not point to a previously 
+            //visited node)
+            graph_type::ConstEdgeIterator ConstEdgeItr(m_Graph, Next->To());
+
+            for (const Edge* pE = ConstEdgeItr.begin(); !ConstEdgeItr.end(); pE = ConstEdgeItr.next()) {
+                if (m_Visited[pE->To()] == unvisited)
+                {
+                    // ê¹Šì´ ê°ì†Œ
+                    stack.push(std::make_pair(pE, remaining - 1));
+                }
+            }
+        }
     }
-   
-    //and mark it visited
-    m_Visited[Next->To()] = visited;
-
-    //if the target has been found the method can return success
-    if (Next->To() == m_iTarget)
-    {
-      return true;
-    }
-
-    //push the edges leading from the node this edge points to onto
-    //the stack (provided the edge does not point to a previously 
-    //visited node)
-    graph_type::ConstEdgeIterator ConstEdgeItr(m_Graph, Next->To());
-
-    for (const Edge* pE=ConstEdgeItr.begin();
-        !ConstEdgeItr.end();
-         pE=ConstEdgeItr.next())
-    {
-      if (m_Visited[pE->To()] == unvisited)
-      {
-          // ±íÀÌ¸¦ Áõ°¡½ÃÄÑ¼­ Ãß°¡
-          stack.push({ pE, depth + 1 });
-      }
-    }
-  }
-
-  //no path to target
-  return false;
+    //no path to target
+    return false;
 }
 
 //-----------------------------------------------------------------------------
